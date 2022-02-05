@@ -17,7 +17,7 @@ public class ChannelExporter
 
     public ChannelExporter(DiscordClient discord) => _discord = discord;
 
-    public async ValueTask ExportChannelAsync(
+    public async ValueTask<int> ExportChannelAsync(
         ExportRequest request,
         IProgress<double>? progress = null,
         CancellationToken cancellationToken = default)
@@ -39,13 +39,14 @@ public class ChannelExporter
 
         var exportedAnything = false;
         var encounteredUsers = new HashSet<User>(IdBasedEqualityComparer.Instance);
-
-        await foreach (var message in _discord.GetMessagesAsync(
+        var messages = await _discord.GetMessagesAsync(
                            request.Channel.Id,
                            request.After,
                            request.Before,
                            progress,
-                           cancellationToken))
+                           cancellationToken);
+
+        foreach (var message in messages)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -76,5 +77,7 @@ public class ChannelExporter
         // Throw if no messages were exported
         if (!exportedAnything)
             throw DiscordChatExporterException.ChannelIsEmpty();
+
+        return messages.Count();
     }
 }
