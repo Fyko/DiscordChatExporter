@@ -80,7 +80,7 @@ public class DiscordClient
         }, cancellationToken);
     }
 
-    private async ValueTask<JsonElement> GetJsonResponseAsync(
+    public async ValueTask<JsonElement> GetJsonResponseAsync(
         string url,
         CancellationToken cancellationToken = default)
     {
