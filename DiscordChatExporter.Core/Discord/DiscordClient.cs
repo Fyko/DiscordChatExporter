@@ -22,7 +22,7 @@ public class DiscordClient
     private readonly string _token;
     private readonly Uri _baseUri = new("https://discord.com/api/v9/", UriKind.Absolute);
 
-    private TokenKind _tokenKind = TokenKind.Unknown;
+    public TokenKind _tokenKind = TokenKind.Unknown;
 
     public DiscordClient(string token) => _token = token;
 
