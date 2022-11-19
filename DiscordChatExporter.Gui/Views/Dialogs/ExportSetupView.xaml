@@ -5,9 +5,11 @@
     xmlns:converters="clr-namespace:DiscordChatExporter.Gui.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:dialogs="clr-namespace:DiscordChatExporter.Gui.ViewModels.Dialogs"
+    xmlns:globalization="clr-namespace:System.Globalization;assembly=System.Runtime"
     xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:s="https://github.com/canton7/Stylet"
+    xmlns:utils="clr-namespace:DiscordChatExporter.Gui.Utils"
     Width="380"
     d:DataContext="{d:DesignInstance Type=dialogs:ExportSetupViewModel}"
     Style="{DynamicResource MaterialDesignRoot}"
@@ -36,7 +38,7 @@
                 </Ellipse.Fill>
             </Ellipse>
 
-            <!--  Placeholder (for multiple channels)  -->
+            <!--  Channel count (for multiple channels)  -->
             <TextBlock
                 Grid.Column="1"
                 Margin="8,0,0,0"
@@ -85,7 +87,7 @@
                         Style="{DynamicResource MaterialDesignOutlinedComboBox}">
                         <ComboBox.ItemTemplate>
                             <DataTemplate>
-                                <TextBlock Text="{Binding Converter={x:Static converters:ExportFormatToStringConverter.Instance}}" />
+                                <TextBlock Text="{Binding Converter={x:Static converters:ExportFormatToStringConverter.Instance}, ConverterCulture={x:Static globalization:CultureInfo.CurrentCulture}}" />
                             </DataTemplate>
                         </ComboBox.ItemTemplate>
                     </ComboBox>
@@ -109,8 +111,8 @@
                                 Margin="16,8,16,4"
                                 materialDesign:HintAssist.Hint="After (date)"
                                 materialDesign:HintAssist.IsFloating="True"
-                                DisplayDateEnd="{Binding BeforeDate, Converter={x:Static converters:DateTimeOffsetToDateTimeConverter.Instance}}"
-                                SelectedDate="{Binding AfterDate, Converter={x:Static converters:DateTimeOffsetToDateTimeConverter.Instance}}"
+                                DisplayDateEnd="{Binding BeforeDate, Converter={x:Static converters:DateTimeOffsetToDateTimeConverter.Instance}, ConverterCulture={x:Static globalization:CultureInfo.CurrentCulture}}"
+                                SelectedDate="{Binding AfterDate, Converter={x:Static converters:DateTimeOffsetToDateTimeConverter.Instance}, ConverterCulture={x:Static globalization:CultureInfo.CurrentCulture}}"
                                 Style="{DynamicResource MaterialDesignOutlinedDatePicker}"
                                 ToolTip="Only include messages sent after this date" />
                             <DatePicker
@@ -119,8 +121,8 @@
                                 Margin="16,8,16,4"
                                 materialDesign:HintAssist.Hint="Before (date)"
                                 materialDesign:HintAssist.IsFloating="True"
-                                DisplayDateStart="{Binding AfterDate, Converter={x:Static converters:DateTimeOffsetToDateTimeConverter.Instance}}"
-                                SelectedDate="{Binding BeforeDate, Converter={x:Static converters:DateTimeOffsetToDateTimeConverter.Instance}}"
+                                DisplayDateStart="{Binding AfterDate, Converter={x:Static converters:DateTimeOffsetToDateTimeConverter.Instance}, ConverterCulture={x:Static globalization:CultureInfo.CurrentCulture}}"
+                                SelectedDate="{Binding BeforeDate, Converter={x:Static converters:DateTimeOffsetToDateTimeConverter.Instance}, ConverterCulture={x:Static globalization:CultureInfo.CurrentCulture}}"
                                 Style="{DynamicResource MaterialDesignOutlinedDatePicker}"
                                 ToolTip="Only include messages sent before this date" />
                             <materialDesign:TimePicker
@@ -129,8 +131,9 @@
                                 Margin="16,4,16,8"
                                 materialDesign:HintAssist.Hint="After (time)"
                                 materialDesign:HintAssist.IsFloating="True"
+                                Is24Hours="{x:Static utils:Internationalization.Is24Hours}"
                                 IsEnabled="{Binding IsAfterDateSet}"
-                                SelectedTime="{Binding AfterTime, Converter={x:Static converters:TimeSpanToDateTimeConverter.Instance}}"
+                                SelectedTime="{Binding AfterTime, Converter={x:Static converters:TimeSpanToDateTimeConverter.Instance}, ConverterCulture={x:Static globalization:CultureInfo.CurrentCulture}}"
                                 Style="{DynamicResource MaterialDesignOutlinedTimePicker}"
                                 ToolTip="Only include messages sent after this time" />
                             <materialDesign:TimePicker
@@ -139,8 +142,9 @@
                                 Margin="16,4,16,8"
                                 materialDesign:HintAssist.Hint="Before (time)"
                                 materialDesign:HintAssist.IsFloating="True"
+                                Is24Hours="{x:Static utils:Internationalization.Is24Hours}"
                                 IsEnabled="{Binding IsBeforeDateSet}"
-                                SelectedTime="{Binding BeforeTime, Converter={x:Static converters:TimeSpanToDateTimeConverter.Instance}}"
+                                SelectedTime="{Binding BeforeTime, Converter={x:Static converters:TimeSpanToDateTimeConverter.Instance}, ConverterCulture={x:Static globalization:CultureInfo.CurrentCulture}}"
                                 Style="{DynamicResource MaterialDesignOutlinedTimePicker}"
                                 ToolTip="Only include messages sent before this time" />
                         </Grid>
@@ -163,8 +167,8 @@
                             Text="{Binding MessageFilterValue}"
                             ToolTip="Only include messages that satisfy this filter (e.g. 'from:foo#1234' or 'has:image')." />
 
-                        <!--  Download media  -->
-                        <Grid Margin="16,16" ToolTip="Download referenced media content (user avatars, attached files, embedded images, etc)">
+                        <!--  Download assets  -->
+                        <Grid Margin="16,16" ToolTip="Download assets referenced by the export (user avatars, attached files, embedded images, etc.)">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
@@ -173,12 +177,12 @@
                             <TextBlock
                                 Grid.Column="0"
                                 VerticalAlignment="Center"
-                                Text="Download media" />
+                                Text="Download assets" />
                             <ToggleButton
                                 Grid.Column="1"
                                 HorizontalAlignment="Right"
                                 VerticalAlignment="Center"
-                                IsChecked="{Binding ShouldDownloadMedia}" />
+                                IsChecked="{Binding ShouldDownloadAssets}" />
                         </Grid>
                     </StackPanel>
                 </StackPanel>

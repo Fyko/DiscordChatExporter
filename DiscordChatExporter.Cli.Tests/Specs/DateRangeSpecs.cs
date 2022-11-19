@@ -15,14 +15,21 @@ using Xunit;
 
 namespace DiscordChatExporter.Cli.Tests.Specs;
 
-public record DateRangeSpecs(TempOutputFixture TempOutput) : IClassFixture<TempOutputFixture>
+public class DateRangeSpecs : IClassFixture<TempOutputFixture>
 {
+    private readonly TempOutputFixture _tempOutput;
+
+    public DateRangeSpecs(TempOutputFixture tempOutput)
+    {
+        _tempOutput = tempOutput;
+    }
+
     [Fact]
     public async Task Messages_filtered_after_specific_date_only_include_messages_sent_after_that_date()
     {
         // Arrange
         var after = new DateTimeOffset(2021, 07, 24, 0, 0, 0, TimeSpan.Zero);
-        var filePath = TempOutput.GetTempFilePath();
+        var filePath = _tempOutput.GetTempFilePath();
 
         // Act
         await new ExportChannelsCommand
@@ -34,16 +41,14 @@ public record DateRangeSpecs(TempOutputFixture TempOutput) : IClassFixture<TempO
             After = Snowflake.FromDate(after)
         }.ExecuteAsync(new FakeConsole());
 
-        var data = await File.ReadAllTextAsync(filePath);
-        var document = Json.Parse(data);
-
-        var timestamps = document
+        // Assert
+        var timestamps = Json
+            .Parse(await File.ReadAllTextAsync(filePath))
             .GetProperty("messages")
             .EnumerateArray()
             .Select(j => j.GetProperty("timestamp").GetDateTimeOffset())
             .ToArray();
 
-        // Assert
         timestamps.All(t => t > after).Should().BeTrue();
 
         timestamps.Should().BeEquivalentTo(new[]
@@ -68,7 +73,7 @@ public record DateRangeSpecs(TempOutputFixture TempOutput) : IClassFixture<TempO
     {
         // Arrange
         var before = new DateTimeOffset(2021, 07, 24, 0, 0, 0, TimeSpan.Zero);
-        var filePath = TempOutput.GetTempFilePath();
+        var filePath = _tempOutput.GetTempFilePath();
 
         // Act
         await new ExportChannelsCommand
@@ -80,16 +85,14 @@ public record DateRangeSpecs(TempOutputFixture TempOutput) : IClassFixture<TempO
             Before = Snowflake.FromDate(before)
         }.ExecuteAsync(new FakeConsole());
 
-        var data = await File.ReadAllTextAsync(filePath);
-        var document = Json.Parse(data);
-
-        var timestamps = document
+        // Assert
+        var timestamps = Json
+            .Parse(await File.ReadAllTextAsync(filePath))
             .GetProperty("messages")
             .EnumerateArray()
             .Select(j => j.GetProperty("timestamp").GetDateTimeOffset())
             .ToArray();
 
-        // Assert
         timestamps.All(t => t < before).Should().BeTrue();
 
         timestamps.Should().BeEquivalentTo(new[]
@@ -113,7 +116,7 @@ public record DateRangeSpecs(TempOutputFixture TempOutput) : IClassFixture<TempO
         // Arrange
         var after = new DateTimeOffset(2021, 07, 24, 0, 0, 0, TimeSpan.Zero);
         var before = new DateTimeOffset(2021, 08, 01, 0, 0, 0, TimeSpan.Zero);
-        var filePath = TempOutput.GetTempFilePath();
+        var filePath = _tempOutput.GetTempFilePath();
 
         // Act
         await new ExportChannelsCommand
@@ -126,16 +129,14 @@ public record DateRangeSpecs(TempOutputFixture TempOutput) : IClassFixture<TempO
             After = Snowflake.FromDate(after)
         }.ExecuteAsync(new FakeConsole());
 
-        var data = await File.ReadAllTextAsync(filePath);
-        var document = Json.Parse(data);
-
-        var timestamps = document
+        // Assert
+        var timestamps = Json
+            .Parse(await File.ReadAllTextAsync(filePath))
             .GetProperty("messages")
             .EnumerateArray()
             .Select(j => j.GetProperty("timestamp").GetDateTimeOffset())
             .ToArray();
 
-        // Assert
         timestamps.All(t => t < before && t > after).Should().BeTrue();
 
         timestamps.Should().BeEquivalentTo(new[]

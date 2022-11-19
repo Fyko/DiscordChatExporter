@@ -30,7 +30,7 @@ public partial record User
             ? "gif"
             : "png";
 
-        return $"https://cdn.discordapp.com/avatars/{id}/{avatarHash}.{extension}?size=128";
+        return $"https://cdn.discordapp.com/avatars/{id}/{avatarHash}.{extension}?size=512";
     }
 
     public static User Parse(JsonElement json)
@@ -39,8 +39,8 @@ public partial record User
         var isBot = json.GetPropertyOrNull("bot")?.GetBooleanOrNull() ?? false;
         var discriminator = json.GetProperty("discriminator").GetNonWhiteSpaceString().Pipe(int.Parse);
         var name = json.GetProperty("username").GetNonNullString();
-        var avatarHash = json.GetPropertyOrNull("avatar")?.GetNonWhiteSpaceStringOrNull();
 
+        var avatarHash = json.GetPropertyOrNull("avatar")?.GetNonWhiteSpaceStringOrNull();
         var avatarUrl = !string.IsNullOrWhiteSpace(avatarHash)
             ? GetAvatarUrl(id, avatarHash)
             : GetDefaultAvatarUrl(discriminator);

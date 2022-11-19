@@ -10,11 +10,16 @@ namespace DiscordChatExporter.Cli.Commands;
 [Command("exportall", Description = "Export all accessible channels.")]
 public class ExportAllCommand : ExportCommandBase
 {
-    [CommandOption("include-dm", Description = "Include direct message channels.")]
+    [CommandOption(
+        "include-dm",
+        Description = "Include direct message channels."
+    )]
     public bool IncludeDirectMessages { get; init; } = true;
 
     public override async ValueTask ExecuteAsync(IConsole console)
     {
+        await base.ExecuteAsync(console);
+
         var cancellationToken = console.RegisterCancellationHandler();
         var channels = new List<Channel>();
 
@@ -26,13 +31,7 @@ public class ExportAllCommand : ExportCommandBase
                 continue;
 
             await foreach (var channel in Discord.GetGuildChannelsAsync(guild.Id, cancellationToken))
-            {
-                // Skip non-text channels
-                if (!channel.IsTextChannel)
-                    continue;
-
                 channels.Add(channel);
-            }
         }
 
         await base.ExecuteAsync(console, channels);

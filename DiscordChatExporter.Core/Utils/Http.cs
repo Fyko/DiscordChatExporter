@@ -1,9 +1,9 @@
 ﻿using System;
-using System.Globalization;
-using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Text.RegularExpressions;
+using System.Net.Sockets;
+using System.Security.Authentication;
 using System.Threading.Tasks;
 using DiscordChatExporter.Core.Utils.Extensions;
 using Polly;
@@ -14,13 +14,27 @@ public static class Http
 {
     public static HttpClient Client { get; } = new();
 
-    public static IAsyncPolicy<HttpResponseMessage> ResponsePolicy { get; } =
+    private static bool IsRetryableStatusCode(HttpStatusCode statusCode) =>
+        statusCode is HttpStatusCode.TooManyRequests or HttpStatusCode.RequestTimeout ||
+        // Treat all server-side errors as retryable.
+        // https://github.com/Tyrrrz/DiscordChatExporter/issues/908
+        (int)statusCode >= 500;
+
+    private static bool IsRetryableException(Exception exception) =>
+        exception.GetSelfAndChildren().Any(ex =>
+            ex is TimeoutException or SocketException or AuthenticationException ||
+            ex is HttpRequestException hrex && IsRetryableStatusCode(hrex.TryGetStatusCode() ?? HttpStatusCode.OK)
+        );
+
+    public static IAsyncPolicy ResiliencePolicy { get; } =
         Policy
-            .Handle<IOException>()
-            .Or<HttpRequestException>()
-            .OrResult<HttpResponseMessage>(m => m.StatusCode == HttpStatusCode.TooManyRequests)
-            .OrResult(m => m.StatusCode == HttpStatusCode.RequestTimeout)
-            .OrResult(m => m.StatusCode >= HttpStatusCode.InternalServerError)
+            .Handle<Exception>(IsRetryableException)
+            .WaitAndRetryAsync(4, i => TimeSpan.FromSeconds(Math.Pow(2, i) + 1));
+
+    public static IAsyncPolicy<HttpResponseMessage> ResponseResiliencePolicy { get; } =
+        Policy
+            .Handle<Exception>(IsRetryableException)
+            .OrResult<HttpResponseMessage>(m => IsRetryableStatusCode(m.StatusCode))
             .WaitAndRetryAsync(
                 8,
                 (i, result, _) =>
@@ -43,24 +57,4 @@ public static class Http
                 },
                 (_, _, _, _) => Task.CompletedTask
             );
-
-    private static HttpStatusCode? TryGetStatusCodeFromException(HttpRequestException ex) =>
-        // This is extremely frail, but there's no other way
-        Regex
-            .Match(ex.Message, @": (\d+) \(")
-            .Groups[1]
-            .Value
-            .NullIfWhiteSpace()?
-            .Pipe(s => (HttpStatusCode) int.Parse(s, CultureInfo.InvariantCulture));
-
-    public static IAsyncPolicy ExceptionPolicy { get; } =
-        Policy
-            .Handle<IOException>() // dangerous
-            .Or<HttpRequestException>(ex =>
-                TryGetStatusCodeFromException(ex) is
-                    HttpStatusCode.TooManyRequests or
-                    HttpStatusCode.RequestTimeout or
-                    HttpStatusCode.InternalServerError
-            )
-            .WaitAndRetryAsync(4, i => TimeSpan.FromSeconds(Math.Pow(2, i) + 1));
 }

@@ -1,20 +1,33 @@
 # DiscordChatExporter
 
-[![Build](https://github.com/Tyrrrz/DiscordChatExporter/workflows/CI/badge.svg?branch=master)](https://github.com/Tyrrrz/DiscordChatExporter/actions)
-[![Coverage](https://codecov.io/gh/Tyrrrz/DiscordChatExporter/branch/master/graph/badge.svg)](https://codecov.io/gh/Tyrrrz/DiscordChatExporter)
+[![Made in Ukraine](https://img.shields.io/badge/made_in-ukraine-ffd700.svg?labelColor=0057b7)](https://vshymanskyy.github.io/StandWithUkraine)
+[![Build](https://img.shields.io/github/workflow/status/Tyrrrz/DiscordChatExporter/main/master)](https://github.com/Tyrrrz/DiscordChatExporter/actions)
+[![Coverage](https://img.shields.io/codecov/c/github/Tyrrrz/DiscordChatExporter/master)](https://codecov.io/gh/Tyrrrz/DiscordChatExporter)
 [![Release](https://img.shields.io/github/release/Tyrrrz/DiscordChatExporter.svg)](https://github.com/Tyrrrz/DiscordChatExporter/releases)
 [![Downloads](https://img.shields.io/github/downloads/Tyrrrz/DiscordChatExporter/total.svg)](https://github.com/Tyrrrz/DiscordChatExporter/releases)
 [![Discord](https://img.shields.io/discord/869237470565392384?label=discord)](https://discord.gg/2SUWKFnHSm)
-[![Donate](https://img.shields.io/badge/donate-$$$-purple.svg)](https://tyrrrz.me/donate)
+[![Donate](https://img.shields.io/badge/donate-$$$-8a2be2.svg)](https://tyrrrz.me/donate)
+[![Fuck Russia](https://img.shields.io/badge/fuck-russia-e4181c.svg?labelColor=000000)](https://twitter.com/tyrrrz/status/1495972128977571848)
 
-✅ **Project status: active**. [What does it mean?](https://github.com/Tyrrrz/.github/blob/master/docs/project-status.md)
+> 🟡 **Project status**: maintenance mode<sup>[[?]](https://github.com/Tyrrrz/.github/blob/master/docs/project-status.md)</sup>
 
 **DiscordChatExporter** can be used to export message history from a [Discord](https://discord.com) channel to a file.
 It works with direct messages, group messages, and server channels, and supports Discord's dialect of markdown as well as all other rich media features.
 
-❓ **If you have questions or issues, please refer to the [wiki](https://github.com/Tyrrrz/DiscordChatExporter/wiki)**.
+> ❔ If you have questions or issues, **please refer to the [wiki](https://github.com/Tyrrrz/DiscordChatExporter/wiki)**.
 
-💬 **If you want to chat, join my [Discord server](https://discord.gg/2SUWKFnHSm)**.
+> 💬 If you want to chat, **join my [Discord server](https://discord.gg/2SUWKFnHSm)**.
+
+## Terms of use<sup>[[?]](https://github.com/Tyrrrz/.github/blob/master/docs/why-so-political.md)</sup>
+
+By using this project or its source code, for any purpose and in any shape or form, you grant your **implicit agreement** to all the following statements:
+
+- You **condemn Russia and its military aggression against Ukraine**
+- You **recognize that Russia is an occupant that unlawfully invaded a sovereign state**
+- You **support Ukraine's territorial integrity, including its claims over temporarily occupied territories of Crimea and Donbas**
+- You **reject false narratives perpetuated by Russian state propaganda**
+
+To learn more about the war and how you can help, [click here](https://tyrrrz.me). Glory to Ukraine! 🇺🇦
 
 ## Download
 
@@ -35,7 +48,7 @@ The following table lists all available download options:
       <td>
         <ul>
           <li>🟢 <b><a href="https://github.com/Tyrrrz/DiscordChatExporter/releases/latest">Stable release</a></b> (<code>DiscordChatExporter.zip</code>)</li>
-          <li>🟠 <a href="https://github.com/Tyrrrz/DiscordChatExporter/actions/workflows/CI.yml">CI build</a> (<code>DiscordChatExporter.zip</code>)</li>
+          <li>🟠 <a href="https://github.com/Tyrrrz/DiscordChatExporter/actions/workflows/main.yml">CI build</a> (<code>DiscordChatExporter.zip</code>)</li>
         </ul>
       </td>
       <td>
@@ -48,10 +61,11 @@ The following table lists all available download options:
       <td><b>CLI</b></td>
       <td>
         <ul>
-          <li>🟢 <b><a href="https://github.com/Tyrrrz/DiscordChatExporter/releases/latest">Stable release</a></b> (<code>DiscordChatExporter.CLI.zip</code>) ⚙️</li>
-          <li>🟠 <a href="https://github.com/Tyrrrz/DiscordChatExporter/actions/workflows/CI.yml">CI build</a> (<code>DiscordChatExporter.CLI.zip</code>) ⚙️</li>
+          <li>🟢 <b><a href="https://github.com/Tyrrrz/DiscordChatExporter/releases/latest">Stable release</a></b> (<code>DiscordChatExporter.CLI.zip</code></li>
+          <li>🟠 <a href="https://github.com/Tyrrrz/DiscordChatExporter/actions/workflows/main.yml">CI build</a> (<code>DiscordChatExporter.CLI.zip</code>)</li>
           <li>🐋 <a href="https://hub.docker.com/r/tyrrrz/discordchatexporter">Docker</a> (<code>tyrrrz/discordchatexporter</code>)</li>
-          <li>📦 <a href="https://aur.archlinux.org/packages/discord-chat-exporter-cli">AUR</a> (<code>discord-chat-exporter-cli</code>) 🦄</li>
+          <li>📦 <a href="https://aur.archlinux.org/packages/discord-chat-exporter-cli">AUR</a> (<code>discord-chat-exporter-cli</code>)</li>
+          <li>📦 <a href="https://search.nixos.org/packages?query=discordchatexporter-cli">Nix</a> (<code>discordchatexporter-cli</code>)</li>
         </ul>
       </td>
       <td>
@@ -65,54 +79,37 @@ The following table lists all available download options:
   </tbody>
 </table>
 
-- ⚙️ - Requires .NET runtime to be installed manually:
-  - [.NET v6.0 Runtime for **Windows x64**](https://dotnet.microsoft.com/download/dotnet-core/thank-you/runtime-desktop-6.0.0-windows-x64-installer)
-  - [.NET v6.0 Runtime for **Windows x86**](https://dotnet.microsoft.com/download/dotnet-core/thank-you/runtime-desktop-6.0.0-windows-x86-installer)
-  - [.NET v6.0 Runtime for **macOS x64**](https://dotnet.microsoft.com/download/dotnet-core/thank-you/runtime-6.0.0-macos-x64-installer)
-  - [.NET v6.0 Runtime for **Linux**](https://docs.microsoft.com/en-us/dotnet/core/install/linux) (find your distro)
-- 🦄 - Community-maintained resource
+> **Note**:
+> AUR and Nix packages linked above are maintained by the community.
+> If you have any issues with them, please contact the corresponding maintainers.
+
+> **Warning**:
+> To run **DiscordChatExporter** on macOS and Linux, you need to make sure that **.NET Runtime v6** is installed.
+> You can download it here:
+>
+> - [.NET Runtime v6 for **macOS x64**](https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/runtime-6.0.11-macos-x64-installer)
+> - [.NET Runtime v6 for **macOS Arm64**](https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/runtime-6.0.11-macos-arm64-installer)
+> - [.NET Runtime v6 for **Linux**](https://docs.microsoft.com/en-us/dotnet/core/install/linux) (find the correct download for your distro)
+>
+> This should not be necessary if you install **DiscordChatExporter** using a package manager, as it should take care of the dependencies for you.
+> This is also not necessary if you are running **DiscordChatExporter** via Docker, because the image already contains the runtime.
 
 ## Features
 
 - Graphical user interface (Windows)
 - Command line interface (Windows, Linux, macOS)
-- Support for both user and bot tokens
-- Support for Discord's dialect of markdown
-- Support for Discord's message filter syntax
-- Support for attachments, embeds, emoji, and other rich media features
+- Authentication via both user and bot tokens
 - Multiple output formats: HTML (dark/light), TXT, CSV, JSON
-- File partitioning, date ranges, and other export options
-- Exports messages on the fly without buffering in-memory
+- Support for markdown, attachments, embeds, emoji, and other rich media features
+- File partitioning, date ranges, message filtering, and other export options
+- Self-contained exports that don't require internet
 
 ## Screenshots
 
-![channel list](.screenshots/list.png)
-![rendered output](.screenshots/output.png)
+![channel list](.assets/list.png)
+![rendered output](.assets/output.png)
 
-## Building the project locally
+## Related projects
 
-Prerequisites:
-
-- [.NET 6.0 SDK](https://dotnet.microsoft.com/download/dotnet/6.0)
-- _(Recommended)_ C#/.NET IDE, such as [JetBrains Rider](https://www.jetbrains.com/rider), [VS Code](https://code.visualstudio.com/docs/languages/csharp), or [Visual Studio](https://visualstudio.microsoft.com).
-
-To build the entire solution run the following command in the root of the repository:
-
-```sh
-> dotnet build
-```
-
-This will generate runtime artifacts for each project:
-
-```plaintext
-./DiscordChatExporter.Gui/bin/[Debug|Release]/[runtime]/*
-./DiscordChatExporter.Cli/bin/[Debug|Release]/[runtime]/*
-```
-
-You can also build and run a specific project directly.
-To do that, navigate to its directory and use `dotnet run`:
-
-```sh
-> cd DiscordChatExporter.Gui
-> dotnet run
-```
+- [**Chat Analytics**](https://github.com/mlomb/chat-analytics) — solution for analyzing chat patterns of Discord users, using exports produced by **DiscordChatExporter**.
+- [**DiscordChatExporter-frontend**](https://github.com/slatinsky/DiscordChatExporter-frontend) — convenient viewer for exports produced by **DiscordChatExporter**.

@@ -16,18 +16,18 @@ public class GetDirectMessageChannelsCommand : TokenCommandBase
     {
         var cancellationToken = console.RegisterCancellationHandler();
 
-        var channels = await Discord.GetGuildChannelsAsync(Guild.DirectMessages.Id, cancellationToken);
-
-        var textChannels = channels
-            .Where(c => c.IsTextChannel)
-            .OrderBy(c => c.Category.Position)
+        var channels = (await Discord.GetGuildChannelsAsync(Guild.DirectMessages.Id, cancellationToken))
+            .Where(c => c.Kind != ChannelKind.GuildCategory)
+            .OrderByDescending(c => c.LastMessageId)
             .ThenBy(c => c.Name)
             .ToArray();
 
-        foreach (var channel in textChannels)
+        foreach (var channel in channels)
         {
             // Channel ID
-            await console.Output.WriteAsync(channel.Id.ToString());
+            await console.Output.WriteAsync(
+                channel.Id.ToString().PadRight(18, ' ')
+            );
 
             // Separator
             using (console.WithForegroundColor(ConsoleColor.DarkGray))

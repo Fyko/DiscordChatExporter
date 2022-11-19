@@ -11,5 +11,11 @@ public enum MessageKind
     ChannelIconChange = 5,
     ChannelPinnedMessage = 6,
     GuildMemberJoin = 7,
+    ThreadCreated = 18,
     Reply = 19
+}
+
+public static class MessageKindExtensions
+{
+    public static bool IsSystemNotification(this MessageKind c) => (int)c is >= 1 and <= 18;
 }

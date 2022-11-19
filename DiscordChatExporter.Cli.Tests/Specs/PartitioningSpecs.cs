@@ -12,13 +12,20 @@ using Xunit;
 
 namespace DiscordChatExporter.Cli.Tests.Specs;
 
-public record PartitioningSpecs(TempOutputFixture TempOutput) : IClassFixture<TempOutputFixture>
+public class PartitioningSpecs : IClassFixture<TempOutputFixture>
 {
+    private readonly TempOutputFixture _tempOutput;
+
+    public PartitioningSpecs(TempOutputFixture tempOutput)
+    {
+        _tempOutput = tempOutput;
+    }
+
     [Fact]
-    public async Task Messages_partitioned_by_count_are_split_into_multiple_files_correctly()
+    public async Task Messages_partitioned_by_count_are_split_into_a_corresponding_number_of_files()
     {
         // Arrange
-        var filePath = TempOutput.GetTempFilePath();
+        var filePath = _tempOutput.GetTempFilePath();
         var fileNameWithoutExt = Path.GetFileNameWithoutExtension(filePath);
         var dirPath = Path.GetDirectoryName(filePath) ?? Directory.GetCurrentDirectory();
 
@@ -39,10 +46,10 @@ public record PartitioningSpecs(TempOutputFixture TempOutput) : IClassFixture<Te
     }
 
     [Fact]
-    public async Task Messages_partitioned_by_file_size_are_split_into_multiple_files_correctly()
+    public async Task Messages_partitioned_by_file_size_are_split_into_a_corresponding_number_of_files()
     {
         // Arrange
-        var filePath = TempOutput.GetTempFilePath();
+        var filePath = _tempOutput.GetTempFilePath();
         var fileNameWithoutExt = Path.GetFileNameWithoutExtension(filePath);
         var dirPath = Path.GetDirectoryName(filePath) ?? Directory.GetCurrentDirectory();
 
@@ -53,12 +60,12 @@ public record PartitioningSpecs(TempOutputFixture TempOutput) : IClassFixture<Te
             ChannelIds = new[] { ChannelIds.DateRangeTestCases },
             ExportFormat = ExportFormat.HtmlDark,
             OutputPath = filePath,
-            PartitionLimit = PartitionLimit.Parse("20kb")
+            PartitionLimit = PartitionLimit.Parse("1kb")
         }.ExecuteAsync(new FakeConsole());
 
         // Assert
         Directory.EnumerateFiles(dirPath, fileNameWithoutExt + "*")
             .Should()
-            .HaveCount(2);
+            .HaveCount(8);
     }
 }

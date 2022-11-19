@@ -1,56 +1,94 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace DiscordChatExporter.Core.Markdown.Parsing;
 
 internal abstract class MarkdownVisitor
 {
-    protected virtual MarkdownNode VisitText(TextNode text) =>
-        text;
+    protected virtual ValueTask<MarkdownNode> VisitTextAsync(
+        TextNode text,
+        CancellationToken cancellationToken = default) =>
+        new(text);
 
-    protected virtual MarkdownNode VisitFormatting(FormattingNode formatting)
+    protected virtual async ValueTask<MarkdownNode> VisitFormattingAsync(
+        FormattingNode formatting,
+        CancellationToken cancellationToken = default)
     {
-        Visit(formatting.Children);
+        await VisitAsync(formatting.Children, cancellationToken);
         return formatting;
     }
 
-    protected virtual MarkdownNode VisitInlineCodeBlock(InlineCodeBlockNode inlineCodeBlock) =>
-        inlineCodeBlock;
+    protected virtual ValueTask<MarkdownNode> VisitInlineCodeBlockAsync(
+        InlineCodeBlockNode inlineCodeBlock,
+        CancellationToken cancellationToken = default) =>
+        new(inlineCodeBlock);
 
-    protected virtual MarkdownNode VisitMultiLineCodeBlock(MultiLineCodeBlockNode multiLineCodeBlock) =>
-        multiLineCodeBlock;
+    protected virtual ValueTask<MarkdownNode> VisitMultiLineCodeBlockAsync(
+        MultiLineCodeBlockNode multiLineCodeBlock,
+        CancellationToken cancellationToken = default) =>
+        new(multiLineCodeBlock);
 
-    protected virtual MarkdownNode VisitLink(LinkNode link)
+    protected virtual async ValueTask<MarkdownNode> VisitLinkAsync(
+        LinkNode link,
+        CancellationToken cancellationToken = default)
     {
-        Visit(link.Children);
+        await VisitAsync(link.Children, cancellationToken);
         return link;
     }
 
-    protected virtual MarkdownNode VisitEmoji(EmojiNode emoji) =>
-        emoji;
+    protected virtual ValueTask<MarkdownNode> VisitEmojiAsync(
+        EmojiNode emoji,
+        CancellationToken cancellationToken = default) =>
+        new(emoji);
 
-    protected virtual MarkdownNode VisitMention(MentionNode mention) =>
-        mention;
+    protected virtual ValueTask<MarkdownNode> VisitMentionAsync(
+        MentionNode mention,
+        CancellationToken cancellationToken = default) =>
+        new(mention);
 
-    protected virtual MarkdownNode VisitUnixTimestamp(UnixTimestampNode timestamp) =>
-        timestamp;
+    protected virtual ValueTask<MarkdownNode> VisitUnixTimestampAsync(
+        UnixTimestampNode timestamp,
+        CancellationToken cancellationToken = default) =>
+        new(timestamp);
 
-    public MarkdownNode Visit(MarkdownNode node) => node switch
-    {
-        TextNode text => VisitText(text),
-        FormattingNode formatting => VisitFormatting(formatting),
-        InlineCodeBlockNode inlineCodeBlock => VisitInlineCodeBlock(inlineCodeBlock),
-        MultiLineCodeBlockNode multiLineCodeBlock => VisitMultiLineCodeBlock(multiLineCodeBlock),
-        LinkNode link => VisitLink(link),
-        EmojiNode emoji => VisitEmoji(emoji),
-        MentionNode mention => VisitMention(mention),
-        UnixTimestampNode timestamp => VisitUnixTimestamp(timestamp),
-        _ => throw new ArgumentOutOfRangeException(nameof(node))
-    };
+    public async ValueTask<MarkdownNode> VisitAsync(
+        MarkdownNode node,
+        CancellationToken cancellationToken = default) => node switch
+        {
+            TextNode text =>
+                await VisitTextAsync(text, cancellationToken),
 
-    public void Visit(IEnumerable<MarkdownNode> nodes)
+            FormattingNode formatting =>
+                await VisitFormattingAsync(formatting, cancellationToken),
+
+            InlineCodeBlockNode inlineCodeBlock =>
+                await VisitInlineCodeBlockAsync(inlineCodeBlock, cancellationToken),
+
+            MultiLineCodeBlockNode multiLineCodeBlock =>
+                await VisitMultiLineCodeBlockAsync(multiLineCodeBlock, cancellationToken),
+
+            LinkNode link =>
+                await VisitLinkAsync(link, cancellationToken),
+
+            EmojiNode emoji =>
+                await VisitEmojiAsync(emoji, cancellationToken),
+
+            MentionNode mention =>
+                await VisitMentionAsync(mention, cancellationToken),
+
+            UnixTimestampNode timestamp =>
+                await VisitUnixTimestampAsync(timestamp, cancellationToken),
+
+            _ => throw new ArgumentOutOfRangeException(nameof(node))
+        };
+
+    public async ValueTask VisitAsync(
+        IEnumerable<MarkdownNode> nodes,
+        CancellationToken cancellationToken = default)
     {
         foreach (var node in nodes)
-            Visit(node);
+            await VisitAsync(node, cancellationToken);
     }
 }

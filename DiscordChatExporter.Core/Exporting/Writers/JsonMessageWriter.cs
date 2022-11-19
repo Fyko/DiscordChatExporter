@@ -20,6 +20,7 @@ internal class JsonMessageWriter : MessageWriter
     {
         _writer = new Utf8JsonWriter(stream, new JsonWriterOptions
         {
+            // https://github.com/Tyrrrz/DiscordChatExporter/issues/450
             Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
             Indented = true,
             // Validation errors may mask actual failures
@@ -28,8 +29,10 @@ internal class JsonMessageWriter : MessageWriter
         });
     }
 
-    private string FormatMarkdown(string? markdown) =>
-        PlainTextMarkdownVisitor.Format(Context, markdown ?? "");
+    private ValueTask<string> FormatMarkdownAsync(
+        string markdown,
+        CancellationToken cancellationToken = default) =>
+        PlainTextMarkdownVisitor.FormatAsync(Context, markdown, cancellationToken);
 
     private async ValueTask WriteAttachmentAsync(
         Attachment attachment,
@@ -38,7 +41,7 @@ internal class JsonMessageWriter : MessageWriter
         _writer.WriteStartObject();
 
         _writer.WriteString("id", attachment.Id.ToString());
-        _writer.WriteString("url", await Context.ResolveMediaUrlAsync(attachment.Url, cancellationToken));
+        _writer.WriteString("url", await Context.ResolveAssetUrlAsync(attachment.Url, cancellationToken));
         _writer.WriteString("fileName", attachment.FileName);
         _writer.WriteNumber("fileSizeBytes", attachment.FileSize.TotalBytes);
 
@@ -50,29 +53,18 @@ internal class JsonMessageWriter : MessageWriter
         EmbedAuthor embedAuthor,
         CancellationToken cancellationToken = default)
     {
-        _writer.WriteStartObject("author");
+        _writer.WriteStartObject();
 
         _writer.WriteString("name", embedAuthor.Name);
         _writer.WriteString("url", embedAuthor.Url);
 
         if (!string.IsNullOrWhiteSpace(embedAuthor.IconUrl))
-            _writer.WriteString("iconUrl", await Context.ResolveMediaUrlAsync(embedAuthor.IconProxyUrl ?? embedAuthor.IconUrl, cancellationToken));
-
-        _writer.WriteEndObject();
-        await _writer.FlushAsync(cancellationToken);
-    }
-
-    private async ValueTask WriteEmbedThumbnailAsync(
-        EmbedImage embedThumbnail,
-        CancellationToken cancellationToken = default)
-    {
-        _writer.WriteStartObject("thumbnail");
-
-        if (!string.IsNullOrWhiteSpace(embedThumbnail.Url))
-            _writer.WriteString("url", await Context.ResolveMediaUrlAsync(embedThumbnail.ProxyUrl ?? embedThumbnail.Url, cancellationToken));
-
-        _writer.WriteNumber("width", embedThumbnail.Width);
-        _writer.WriteNumber("height", embedThumbnail.Height);
+        {
+            _writer.WriteString(
+                "iconUrl",
+                await Context.ResolveAssetUrlAsync(embedAuthor.IconProxyUrl ?? embedAuthor.IconUrl, cancellationToken)
+            );
+        }
 
         _writer.WriteEndObject();
         await _writer.FlushAsync(cancellationToken);
@@ -82,10 +74,15 @@ internal class JsonMessageWriter : MessageWriter
         EmbedImage embedImage,
         CancellationToken cancellationToken = default)
     {
-        _writer.WriteStartObject("image");
+        _writer.WriteStartObject();
 
         if (!string.IsNullOrWhiteSpace(embedImage.Url))
-            _writer.WriteString("url", await Context.ResolveMediaUrlAsync(embedImage.ProxyUrl ?? embedImage.Url, cancellationToken));
+        {
+            _writer.WriteString(
+                "url",
+                await Context.ResolveAssetUrlAsync(embedImage.ProxyUrl ?? embedImage.Url, cancellationToken)
+            );
+        }
 
         _writer.WriteNumber("width", embedImage.Width);
         _writer.WriteNumber("height", embedImage.Height);
@@ -98,12 +95,17 @@ internal class JsonMessageWriter : MessageWriter
         EmbedFooter embedFooter,
         CancellationToken cancellationToken = default)
     {
-        _writer.WriteStartObject("footer");
+        _writer.WriteStartObject();
 
         _writer.WriteString("text", embedFooter.Text);
 
         if (!string.IsNullOrWhiteSpace(embedFooter.IconUrl))
-            _writer.WriteString("iconUrl", await Context.ResolveMediaUrlAsync(embedFooter.IconProxyUrl ?? embedFooter.IconUrl, cancellationToken));
+        {
+            _writer.WriteString(
+                "iconUrl",
+                await Context.ResolveAssetUrlAsync(embedFooter.IconProxyUrl ?? embedFooter.IconUrl, cancellationToken)
+            );
+        }
 
         _writer.WriteEndObject();
         await _writer.FlushAsync(cancellationToken);
@@ -115,8 +117,8 @@ internal class JsonMessageWriter : MessageWriter
     {
         _writer.WriteStartObject();
 
-        _writer.WriteString("name", FormatMarkdown(embedField.Name));
-        _writer.WriteString("value", FormatMarkdown(embedField.Value));
+        _writer.WriteString("name", await FormatMarkdownAsync(embedField.Name, cancellationToken));
+        _writer.WriteString("value", await FormatMarkdownAsync(embedField.Value, cancellationToken));
         _writer.WriteBoolean("isInline", embedField.IsInline);
 
         _writer.WriteEndObject();
@@ -129,25 +131,46 @@ internal class JsonMessageWriter : MessageWriter
     {
         _writer.WriteStartObject();
 
-        _writer.WriteString("title", FormatMarkdown(embed.Title));
+        _writer.WriteString("title", await FormatMarkdownAsync(embed.Title ?? "", cancellationToken));
         _writer.WriteString("url", embed.Url);
         _writer.WriteString("timestamp", embed.Timestamp);
-        _writer.WriteString("description", FormatMarkdown(embed.Description));
+        _writer.WriteString("description", await FormatMarkdownAsync(embed.Description ?? "", cancellationToken));
 
         if (embed.Color is not null)
             _writer.WriteString("color", embed.Color.Value.ToHex());
 
         if (embed.Author is not null)
+        {
+            _writer.WritePropertyName("author");
             await WriteEmbedAuthorAsync(embed.Author, cancellationToken);
+        }
 
         if (embed.Thumbnail is not null)
-            await WriteEmbedThumbnailAsync(embed.Thumbnail, cancellationToken);
+        {
+            _writer.WritePropertyName("thumbnail");
+            await WriteEmbedImageAsync(embed.Thumbnail, cancellationToken);
+        }
 
-        if (embed.Image is not null)
-            await WriteEmbedImageAsync(embed.Image, cancellationToken);
+        // Legacy: backwards-compatibility for old embeds with a single image
+        if (embed.Images.Count > 0)
+        {
+            _writer.WritePropertyName("image");
+            await WriteEmbedImageAsync(embed.Images[0], cancellationToken);
+        }
 
         if (embed.Footer is not null)
+        {
+            _writer.WritePropertyName("footer");
             await WriteEmbedFooterAsync(embed.Footer, cancellationToken);
+        }
+
+        // Images
+        _writer.WriteStartArray("images");
+
+        foreach (var image in embed.Images)
+            await WriteEmbedImageAsync(image, cancellationToken);
+
+        _writer.WriteEndArray();
 
         // Fields
         _writer.WriteStartArray("fields");
@@ -161,6 +184,21 @@ internal class JsonMessageWriter : MessageWriter
         await _writer.FlushAsync(cancellationToken);
     }
 
+    private async ValueTask WriteStickerAsync(
+        Sticker sticker,
+        CancellationToken cancellationToken = default)
+    {
+        _writer.WriteStartObject();
+
+        _writer.WriteString("id", sticker.Id.ToString());
+        _writer.WriteString("name", sticker.Name);
+        _writer.WriteString("format", sticker.Format.ToString());
+        _writer.WriteString("sourceUrl", await Context.ResolveAssetUrlAsync(sticker.SourceUrl, cancellationToken));
+
+        _writer.WriteEndObject();
+        await _writer.FlushAsync(cancellationToken);
+    }
+
     private async ValueTask WriteReactionAsync(
         Reaction reaction,
         CancellationToken cancellationToken = default)
@@ -169,10 +207,10 @@ internal class JsonMessageWriter : MessageWriter
 
         // Emoji
         _writer.WriteStartObject("emoji");
-        _writer.WriteString("id", reaction.Emoji.Id);
+        _writer.WriteString("id", reaction.Emoji.Id.ToString());
         _writer.WriteString("name", reaction.Emoji.Name);
         _writer.WriteBoolean("isAnimated", reaction.Emoji.IsAnimated);
-        _writer.WriteString("imageUrl", await Context.ResolveMediaUrlAsync(reaction.Emoji.ImageUrl, cancellationToken));
+        _writer.WriteString("imageUrl", await Context.ResolveAssetUrlAsync(reaction.Emoji.ImageUrl, cancellationToken));
         _writer.WriteEndObject();
 
         _writer.WriteNumber("count", reaction.Count);
@@ -206,7 +244,7 @@ internal class JsonMessageWriter : MessageWriter
         _writer.WriteStartObject("guild");
         _writer.WriteString("id", Context.Request.Guild.Id.ToString());
         _writer.WriteString("name", Context.Request.Guild.Name);
-        _writer.WriteString("iconUrl", await Context.ResolveMediaUrlAsync(Context.Request.Guild.IconUrl, cancellationToken));
+        _writer.WriteString("iconUrl", await Context.ResolveAssetUrlAsync(Context.Request.Guild.IconUrl, cancellationToken));
         _writer.WriteEndObject();
 
         // Channel
@@ -247,7 +285,7 @@ internal class JsonMessageWriter : MessageWriter
         _writer.WriteBoolean("isPinned", message.IsPinned);
 
         // Content
-        _writer.WriteString("content", FormatMarkdown(message.Content));
+        _writer.WriteString("content", await FormatMarkdownAsync(message.Content, cancellationToken));
 
         // Author
         _writer.WriteStartObject("author");
@@ -257,7 +295,7 @@ internal class JsonMessageWriter : MessageWriter
         _writer.WriteString("nickname", Context.TryGetMember(message.Author.Id)?.Nick ?? message.Author.Name);
         _writer.WriteString("color", Context.TryGetUserColor(message.Author.Id)?.ToHex());
         _writer.WriteBoolean("isBot", message.Author.IsBot);
-        _writer.WriteString("avatarUrl", await Context.ResolveMediaUrlAsync(message.Author.AvatarUrl, cancellationToken));
+        _writer.WriteString("avatarUrl", await Context.ResolveAssetUrlAsync(message.Author.AvatarUrl, cancellationToken));
         _writer.WriteEndObject();
 
         // Attachments
@@ -273,6 +311,14 @@ internal class JsonMessageWriter : MessageWriter
 
         foreach (var embed in message.Embeds)
             await WriteEmbedAsync(embed, cancellationToken);
+
+        _writer.WriteEndArray();
+
+        // Stickers
+        _writer.WriteStartArray("stickers");
+
+        foreach (var sticker in message.Stickers)
+            await WriteStickerAsync(sticker, cancellationToken);
 
         _writer.WriteEndArray();
 

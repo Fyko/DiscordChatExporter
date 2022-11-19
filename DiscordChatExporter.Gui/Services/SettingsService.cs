@@ -1,13 +1,14 @@
 ﻿using DiscordChatExporter.Core.Exporting;
+using Microsoft.Win32;
 using Tyrrrz.Settings;
 
 namespace DiscordChatExporter.Gui.Services;
 
-public class SettingsService : SettingsManager
+public partial class SettingsService : SettingsManager
 {
     public bool IsAutoUpdateEnabled { get; set; } = true;
 
-    public bool IsDarkModeEnabled { get; set; }
+    public bool IsDarkModeEnabled { get; set; } = IsDarkModeEnabledByDefault();
 
     public bool IsTokenPersisted { get; set; } = true;
 
@@ -15,7 +16,7 @@ public class SettingsService : SettingsManager
 
     public int ParallelLimit { get; set; } = 1;
 
-    public bool ShouldReuseMedia { get; set; }
+    public bool ShouldReuseAssets { get; set; }
 
     public string? LastToken { get; set; }
 
@@ -25,7 +26,7 @@ public class SettingsService : SettingsManager
 
     public string? LastMessageFilterValue { get; set; }
 
-    public bool LastShouldDownloadMedia { get; set; }
+    public bool LastShouldDownloadAssets { get; set; }
 
     public SettingsService()
     {
@@ -35,4 +36,22 @@ public class SettingsService : SettingsManager
     }
 
     public bool ShouldSerializeLastToken() => IsTokenPersisted;
+}
+
+public partial class SettingsService
+{
+    private static bool IsDarkModeEnabledByDefault()
+    {
+        try
+        {
+            return Registry.CurrentUser.OpenSubKey(
+                "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",
+                false
+            )?.GetValue("AppsUseLightTheme") is 0;
+        }
+        catch
+        {
+            return false;
+        }
+    }
 }

@@ -21,12 +21,11 @@ public class ExportSetupViewModel : DialogScreen
 
     public IReadOnlyList<Channel>? Channels { get; set; }
 
-    public bool IsSingleChannel => Channels is null || Channels.Count == 1;
+    public bool IsSingleChannel => Channels?.Count == 1;
 
     public string? OutputPath { get; set; }
 
-    public IReadOnlyList<ExportFormat> AvailableFormats =>
-        Enum.GetValues(typeof(ExportFormat)).Cast<ExportFormat>().ToArray();
+    public IReadOnlyList<ExportFormat> AvailableFormats { get; } = Enum.GetValues<ExportFormat>();
 
     public ExportFormat SelectedFormat { get; set; }
 
@@ -60,7 +59,7 @@ public class ExportSetupViewModel : DialogScreen
         ? MessageFilter.Parse(MessageFilterValue)
         : MessageFilter.Null;
 
-    public bool ShouldDownloadMedia { get; set; }
+    public bool ShouldDownloadAssets { get; set; }
 
     public bool IsAdvancedSectionDisplayed { get; set; }
 
@@ -73,16 +72,16 @@ public class ExportSetupViewModel : DialogScreen
         SelectedFormat = _settingsService.LastExportFormat;
         PartitionLimitValue = _settingsService.LastPartitionLimitValue;
         MessageFilterValue = _settingsService.LastMessageFilterValue;
-        ShouldDownloadMedia = _settingsService.LastShouldDownloadMedia;
+        ShouldDownloadAssets = _settingsService.LastShouldDownloadAssets;
 
-        // Show the "advanced options" by default if any
+        // Show the "advanced options" section by default if any
         // of the advanced options are set to non-default values.
         IsAdvancedSectionDisplayed =
             After != default ||
             Before != default ||
             !string.IsNullOrWhiteSpace(PartitionLimitValue) ||
             !string.IsNullOrWhiteSpace(MessageFilterValue) ||
-            ShouldDownloadMedia != default;
+            ShouldDownloadAssets != default;
     }
 
     public void ToggleAdvancedSection() => IsAdvancedSectionDisplayed = !IsAdvancedSectionDisplayed;
@@ -93,15 +92,14 @@ public class ExportSetupViewModel : DialogScreen
         _settingsService.LastExportFormat = SelectedFormat;
         _settingsService.LastPartitionLimitValue = PartitionLimitValue;
         _settingsService.LastMessageFilterValue = MessageFilterValue;
-        _settingsService.LastShouldDownloadMedia = ShouldDownloadMedia;
+        _settingsService.LastShouldDownloadAssets = ShouldDownloadAssets;
 
         // If single channel - prompt file path
-        if (Channels is not null && IsSingleChannel)
+        if (IsSingleChannel)
         {
-            var channel = Channels.Single();
             var defaultFileName = ExportRequest.GetDefaultOutputFileName(
                 Guild!,
-                channel,
+                Channels!.Single(),
                 SelectedFormat,
                 After?.Pipe(Snowflake.FromDate),
                 Before?.Pipe(Snowflake.FromDate)

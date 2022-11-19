@@ -8,24 +8,30 @@ using Xunit;
 
 namespace DiscordChatExporter.Cli.Tests.Specs.JsonWriting;
 
-public record AttachmentSpecs(ExportWrapperFixture ExportWrapper) : IClassFixture<ExportWrapperFixture>
+public class AttachmentSpecs : IClassFixture<ExportWrapperFixture>
 {
+    private readonly ExportWrapperFixture _exportWrapper;
+
+    public AttachmentSpecs(ExportWrapperFixture exportWrapper)
+    {
+        _exportWrapper = exportWrapper;
+    }
+
     [Fact]
     public async Task Message_with_a_generic_attachment_is_rendered_correctly()
     {
         // Act
-        var message = await ExportWrapper.GetMessageAsJsonAsync(
+        var message = await _exportWrapper.GetMessageAsJsonAsync(
             ChannelIds.AttachmentTestCases,
             Snowflake.Parse("885587844989612074")
         );
 
-        var attachments = message.GetProperty("attachments").EnumerateArray().ToArray();
-
         // Assert
         message.GetProperty("content").GetString().Should().Be("Generic file attachment");
 
+        var attachments = message.GetProperty("attachments").EnumerateArray().ToArray();
         attachments.Should().HaveCount(1);
-        attachments.Single().GetProperty("url").GetString().Should().StartWithEquivalentOf(
+        attachments.Single().GetProperty("url").GetString().Should().Be(
             "https://cdn.discordapp.com/attachments/885587741654536192/885587844964417596/Test.txt"
         );
         attachments.Single().GetProperty("fileName").GetString().Should().Be("Test.txt");
@@ -36,18 +42,17 @@ public record AttachmentSpecs(ExportWrapperFixture ExportWrapper) : IClassFixtur
     public async Task Message_with_an_image_attachment_is_rendered_correctly()
     {
         // Act
-        var message = await ExportWrapper.GetMessageAsJsonAsync(
+        var message = await _exportWrapper.GetMessageAsJsonAsync(
             ChannelIds.AttachmentTestCases,
             Snowflake.Parse("885654862656843786")
         );
 
-        var attachments = message.GetProperty("attachments").EnumerateArray().ToArray();
-
         // Assert
         message.GetProperty("content").GetString().Should().Be("Image attachment");
 
+        var attachments = message.GetProperty("attachments").EnumerateArray().ToArray();
         attachments.Should().HaveCount(1);
-        attachments.Single().GetProperty("url").GetString().Should().StartWithEquivalentOf(
+        attachments.Single().GetProperty("url").GetString().Should().Be(
             "https://cdn.discordapp.com/attachments/885587741654536192/885654862430359613/bird-thumbnail.png"
         );
         attachments.Single().GetProperty("fileName").GetString().Should().Be("bird-thumbnail.png");
@@ -58,18 +63,17 @@ public record AttachmentSpecs(ExportWrapperFixture ExportWrapper) : IClassFixtur
     public async Task Message_with_a_video_attachment_is_rendered_correctly()
     {
         // Act
-        var message = await ExportWrapper.GetMessageAsJsonAsync(
+        var message = await _exportWrapper.GetMessageAsJsonAsync(
             ChannelIds.AttachmentTestCases,
             Snowflake.Parse("885655761919836171")
         );
 
-        var attachments = message.GetProperty("attachments").EnumerateArray().ToArray();
-
         // Assert
         message.GetProperty("content").GetString().Should().Be("Video attachment");
 
+        var attachments = message.GetProperty("attachments").EnumerateArray().ToArray();
         attachments.Should().HaveCount(1);
-        attachments.Single().GetProperty("url").GetString().Should().StartWithEquivalentOf(
+        attachments.Single().GetProperty("url").GetString().Should().Be(
             "https://cdn.discordapp.com/attachments/885587741654536192/885655761512968233/file_example_MP4_640_3MG.mp4"
         );
         attachments.Single().GetProperty("fileName").GetString().Should().Be("file_example_MP4_640_3MG.mp4");
@@ -80,18 +84,17 @@ public record AttachmentSpecs(ExportWrapperFixture ExportWrapper) : IClassFixtur
     public async Task Message_with_an_audio_attachment_is_rendered_correctly()
     {
         // Act
-        var message = await ExportWrapper.GetMessageAsJsonAsync(
+        var message = await _exportWrapper.GetMessageAsJsonAsync(
             ChannelIds.AttachmentTestCases,
             Snowflake.Parse("885656175620808734")
         );
 
-        var attachments = message.GetProperty("attachments").EnumerateArray().ToArray();
-
         // Assert
         message.GetProperty("content").GetString().Should().Be("Audio attachment");
 
+        var attachments = message.GetProperty("attachments").EnumerateArray().ToArray();
         attachments.Should().HaveCount(1);
-        attachments.Single().GetProperty("url").GetString().Should().StartWithEquivalentOf(
+        attachments.Single().GetProperty("url").GetString().Should().Be(
             "https://cdn.discordapp.com/attachments/885587741654536192/885656175348187146/file_example_MP3_1MG.mp3"
         );
         attachments.Single().GetProperty("fileName").GetString().Should().Be("file_example_MP3_1MG.mp3");

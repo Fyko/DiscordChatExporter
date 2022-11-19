@@ -13,12 +13,16 @@ public class ExportDirectMessagesCommand : ExportCommandBase
 {
     public override async ValueTask ExecuteAsync(IConsole console)
     {
+        await base.ExecuteAsync(console);
+
         var cancellationToken = console.RegisterCancellationHandler();
 
         await console.Output.WriteLineAsync("Fetching channels...");
-        var channels = await Discord.GetGuildChannelsAsync(Guild.DirectMessages.Id, cancellationToken);
-        var textChannels = channels.Where(c => c.IsTextChannel).ToArray();
 
-        await base.ExecuteAsync(console, textChannels);
+        var channels = (await Discord.GetGuildChannelsAsync(Guild.DirectMessages.Id, cancellationToken))
+            .Where(c => c.Kind != ChannelKind.GuildCategory)
+            .ToArray();
+
+        await base.ExecuteAsync(console, channels);
     }
 }
